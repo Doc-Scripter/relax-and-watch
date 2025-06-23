@@ -1,10 +1,221 @@
+/* General Body and Container Styles */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f4f4f4;
-    color: #333;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
 }
 
-h1 {
-    color: #0056b3;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: #16213e;
+    padding: 15px 0;
+    border-bottom: 1px solid #0f3460;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.navbar .logo {
+    font-size: 28px;
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+.navbar .search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #0f3460;
+    border-radius: 25px;
+    padding: 5px 15px;
+    flex-grow: 1;
+    max-width: 400px;
+    margin: 0 20px;
+}
+
+.navbar .search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: #e0e0e0;
+    padding: 8px;
+    flex-grow: 1;
+}
+
+.navbar .search-bar input::placeholder {
+    color: #a0a0a0;
+}
+
+.navbar .search-bar button {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.navbar .nav-links .btn {
+    background-color: #0f3460;
+    color: #e0e0e0;
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar .nav-links .btn:hover,
+.navbar .nav-links .btn.active {
+    background-color: #e94560;
+}
+
+.navbar .nav-links .watchlist-count {
+    color: #e94560;
+    font-weight: bold;
+}
+
+/* Filter Section Styles */
+.filter-section {
+    background-color: #16213e;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.filter-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.filter-buttons .btn {
+    background-color: #0f3460;
+    color: #e0e0e0;
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    margin: 0 5px;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.filter-buttons .btn:hover,
+.filter-buttons .btn.active {
+    background-color: #e94560;
+}
+
+.discover-filter h3 {
+    color: #e94560;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+.discover-filter h3 i {
+    margin-right: 10px;
+}
+
+.filter-options {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    margin: 10px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #a0a0a0;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #0f3460;
+    background-color: #0f3460;
+    color: #e0e0e0;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M208.5%2096.5L128%20177l-80.5-80.5%2011.3-11.3L128%20154.3l69.2-69.1z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
+
+/* Trending Movies Section */
+.trending-movies {
+    margin-top: 40px;
+}
+
+.trending-movies h2 {
+    color: #e0e0e0;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.movie-card {
+    background-color: #16213e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+}
+
+.movie-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+}
+
+.movie-info {
+    padding: 15px;
+}
+
+.movie-info h3 {
+    color: #e0e0e0;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.movie-info p {
+    color: #a0a0a0;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.movie-info .rating {
+    color: #e94560;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.movie-info .rating i {
+    margin-right: 5px;
 }

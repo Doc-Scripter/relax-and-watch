@@ -6,9 +6,82 @@
     <title>Relax and Watch</title>
     <link rel="stylesheet" href="./css/style.css">
 </head>
-<body>
-    <h1>Welcome to Relax and Watch!</h1>
-    <p>This is the frontend.</p>
+<body class="dark-theme">
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">CineVault</div>
+            <div class="search-bar">
+                <input type="text" placeholder="Search movies and TV shows...">
+                <button type="button"><i class="fas fa-search"></i></button>
+            </div>
+            <nav class="nav-links">
+                <a href="#" class="btn active">Home</a>
+                <a href="#" class="btn">Watchlist <span class="watchlist-count">(0)</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="filter-section">
+            <div class="filter-buttons">
+                <button class="btn active">Movies</button>
+                <button class="btn">Series</button>
+            </div>
+            <div class="discover-filter">
+                <h3><i class="fas fa-compass"></i> Discover & Filter</h3>
+                <div class="filter-options">
+                    <div class="filter-group">
+                        <label for="genre">Genre</label>
+                        <select id="genre">
+                            <option value="all">All Genres</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="year">Year</label>
+                        <select id="year">
+                            <option value="all">All Years</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="rating">Rating</label>
+                        <select id="rating">
+                            <option value="all">All Ratings</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="runtime">Runtime</label>
+                        <select id="runtime">
+                            <option value="all">Any Length</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="trending-movies">
+            <h2>Trending Movies</h2>
+            <div class="movie-grid">
+                <div class="movie-card">
+                    <img src="https://via.placeholder.com/200x300?text=Dune+Part+Two" alt="Dune: Part Two">
+                    <div class="movie-info">
+                        <h3>Dune: Part Two</h3>
+                        <p>2024 &bull; sci-fi</p>
+                        <div class="rating"><i class="fas fa-star"></i> 8.8</div>
+                    </div>
+                </div>
+                <div class="movie-card">
+                    <img src="https://via.placeholder.com/200x300?text=Oppenheimer" alt="Oppenheimer">
+                    <div class="movie-info">
+                        <h3>Oppenheimer</h3>
+                        <p>2023 &bull; drama</p>
+                        <div class="rating"><i class="fas fa-star"></i> 8.5</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
     <script src="/static/js/main.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
 </html>
