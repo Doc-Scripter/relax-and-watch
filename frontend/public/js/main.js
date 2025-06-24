@@ -240,17 +240,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            // Handle both paginated and non-paginated responses
+            // Backend handles pagination, so use the data directly
             const results = data.results || data;
-            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
-            totalResults = data.total_results || data.length || results.length || 0;
+            totalPages = data.total_pages || 1;
+            totalResults = data.total_results || (Array.isArray(results) ? results.length : 0);
             
-            // Slice results for client-side pagination if needed
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
-            
-            displayMovies(paginatedResults);
+            displayMovies(results);
             updatePaginationInfo();
             
         } catch (error) {
@@ -278,17 +273,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            // Handle both paginated and non-paginated responses
+            // Backend handles pagination, so use the data directly
             const results = data.results || data;
-            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
-            totalResults = data.total_results || data.length || results.length || 0;
+            totalPages = data.total_pages || 1;
+            totalResults = data.total_results || (Array.isArray(results) ? results.length : 0);
             
-            // Slice results for client-side pagination if needed
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
-            
-            displayMovies(paginatedResults);
+            displayMovies(results);
             updatePaginationInfo();
             
         } catch (error) {
@@ -322,17 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            // Handle both paginated and non-paginated responses
+            // Backend handles pagination, so use the data directly
             const results = data.results || data;
-            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
-            totalResults = data.total_results || data.length || results.length || 0;
+            totalPages = data.total_pages || 1;
+            totalResults = data.total_results || (Array.isArray(results) ? results.length : 0);
             
-            // Slice results for client-side pagination if needed
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
-            
-            displayMovies(paginatedResults);
+            displayMovies(results);
             updatePaginationInfo();
             
         } catch (error) {
