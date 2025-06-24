@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"r.a.w/backend/pkg/logger"
 )
 
 const (
@@ -16,15 +18,17 @@ const (
 type TMDBClient struct {
 	APIKey     string
 	HTTPClient *http.Client
+	Logger     *logger.Logger
 }
 
 // NewTMDBClient creates a new TMDB API client.
-func NewTMDBClient(apiKey string) *TMDBClient {
+func NewTMDBClient(apiKey string, appLogger *logger.Logger) *TMDBClient {
 	return &TMDBClient{
 		APIKey: apiKey,
 		HTTPClient: &http.Client{
 			Timeout: time.Second * 10,
 		},
+		Logger: appLogger,
 	}
 }
 
@@ -44,22 +48,26 @@ func (c *TMDBClient) GetTrendingMovies() (map[string]interface{}, error) {
 func (c *TMDBClient) fetchData(url string) (map[string]interface{}, error) {
 	resp, err := c.HTTPClient.Get(url)
 	if err != nil {
+		c.Logger.Error("Failed to make request to TMDB: %v", err)
 		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		c.Logger.Error("TMDB API request failed with status code: %d for URL: %s", resp.StatusCode, url)
 		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		c.Logger.Error("Failed to read response body from TMDB: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	var data map[string]interface{}
 	if err := json.Unmarshal(body, &data);
 	err != nil {
+		c.Logger.Error("Failed to unmarshal JSON response from TMDB: %v", err)
 		return nil, fmt.Errorf("failed to unmarshal JSON response: %w", err)
 	}
 
