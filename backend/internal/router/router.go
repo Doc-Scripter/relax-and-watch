@@ -8,7 +8,7 @@ import (
 )
 
 // SetupRoutes configures all the application routes
-func SetupRoutes(movieHandler *handlers.MovieHandler) *mux.Router {
+func SetupRoutes(movieHandler *handlers.MovieHandler, watchlistHandler *handlers.WatchlistHandler) *mux.Router {
 	r := mux.NewRouter()
 
 	// Serve static files from the frontend/public directory
@@ -30,6 +30,17 @@ func SetupRoutes(movieHandler *handlers.MovieHandler) *mux.Router {
 	api.HandleFunc("/genres", movieHandler.GetGenres).Methods("GET")
 	api.HandleFunc("/search", movieHandler.SearchMovies).Methods("GET")
 	api.HandleFunc("/discover", movieHandler.DiscoverMovies).Methods("GET")
+	
+	// Watchlist routes
+	api.HandleFunc("/watchlist/{userID}", watchlistHandler.GetWatchlist).Methods("GET")
+	api.HandleFunc("/watchlist/{userID}", watchlistHandler.AddToWatchlist).Methods("POST")
+	api.HandleFunc("/watchlist/{userID}/{itemID}", watchlistHandler.RemoveFromWatchlist).Methods("DELETE")
+	api.HandleFunc("/watchlist/{userID}/{itemID}/watched", watchlistHandler.MarkAsWatched).Methods("PUT")
+	api.HandleFunc("/watchlist/{userID}/{itemID}/unwatched", watchlistHandler.MarkAsUnwatched).Methods("PUT")
+	api.HandleFunc("/watchlist/{userID}/stats", watchlistHandler.GetWatchlistStats).Methods("GET")
+	api.HandleFunc("/watchlist/{userID}/export", watchlistHandler.ExportWatchlist).Methods("GET")
+	api.HandleFunc("/watchlist/{userID}/share", watchlistHandler.CreateShareableWatchlist).Methods("POST")
+	api.HandleFunc("/shared/{shareToken}", watchlistHandler.GetSharedWatchlist).Methods("GET")
 
 	return r
 }
