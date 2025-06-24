@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relax and Watch</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body class="dark-theme">
     <header class="navbar">
@@ -61,22 +61,7 @@
         <section class="trending-movies">
             <h2>Trending Movies</h2>
             <div class="movie-grid">
-                <div class="movie-card">
-                    <img src="https://via.placeholder.com/200x300?text=Dune+Part+Two" alt="Dune: Part Two">
-                    <div class="movie-info">
-                        <h3>Dune: Part Two</h3>
-                        <p>2024 &bull; sci-fi</p>
-                        <div class="rating"><i class="fas fa-star"></i> 8.8</div>
-                    </div>
-                </div>
-                <div class="movie-card">
-                    <img src="https://via.placeholder.com/200x300?text=Oppenheimer" alt="Oppenheimer">
-                    <div class="movie-info">
-                        <h3>Oppenheimer</h3>
-                        <p>2023 &bull; drama</p>
-                        <div class="rating"><i class="fas fa-star"></i> 8.5</div>
-                    </div>
-                </div>
+                <!-- Static movie cards will be replaced by dynamic content from JavaScript -->
             </div>
         </section>
     </main>
@@ -91,6 +76,11 @@
     </div>
 
     <script src="/static/js/main.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Using Unicode symbols instead of FontAwesome to avoid CORS issues -->
+    <style>
+        .fas.fa-search::before { content: "🔍"; }
+        .fas.fa-star::before { content: "⭐"; }
+        .fas.fa-compass::before { content: "🧭"; }
+    </style>
 </body>
 </html>
