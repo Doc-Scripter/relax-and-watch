@@ -36,7 +36,7 @@ func main() {
 	r.PathPrefix("/").Handler(fs)
 
 	// Load environment variables from .env file
-	envFilePath := filepath.Join(currentDir, ".env")
+	envFilePath := filepath.Join(currentDir, "..", "..", ".env")
 	err = godotenv.Load(envFilePath)
 	if err != nil {
 		appLogger.Error("Error loading .env file: %v", err)
