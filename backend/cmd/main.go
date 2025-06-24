@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv" // Import godotenv
 
 	"r.a.w/backend/internal/api"
 )
@@ -19,6 +20,12 @@ func main() {
 
 	fs := http.FileServer(http.Dir("../../frontend/public"))
 	r.PathPrefix("/").Handler(fs)
+
+	// Load environment variables from .env file
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 
 	// Initialize API clients
 	tmdbAPIKey := os.Getenv("TMDB_API_KEY")
