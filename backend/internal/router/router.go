@@ -2,6 +2,8 @@ package router
 
 import (
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"r.a.w/backend/internal/handlers"
@@ -11,13 +13,43 @@ import (
 func SetupRoutes(movieHandler *handlers.MovieHandler, watchlistHandler *handlers.WatchlistHandler) *mux.Router {
 	r := mux.NewRouter()
 
-	// Serve static files from the frontend/public directory
-	fs := http.FileServer(http.Dir("../../frontend/public"))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+	// Serve static files from the frontend/public directory with proper MIME types
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		ext := strings.ToLower(filepath.Ext(path))
+		
+		// Set proper MIME types
+		switch ext {
+		case ".css":
+			w.Header().Set("Content-Type", "text/css")
+		case ".js":
+			w.Header().Set("Content-Type", "application/javascript")
+		case ".html":
+			w.Header().Set("Content-Type", "text/html")
+		case ".png":
+			w.Header().Set("Content-Type", "image/png")
+		case ".jpg", ".jpeg":
+			w.Header().Set("Content-Type", "image/jpeg")
+		case ".gif":
+			w.Header().Set("Content-Type", "image/gif")
+		case ".svg":
+			w.Header().Set("Content-Type", "image/svg+xml")
+		}
+		
+		// Serve the file
+		http.FileServer(http.Dir("../../frontend/public")).ServeHTTP(w, r)
+	})))
 	
 	// Serve index.html for the root path
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "../../frontend/public/index.html")
+	})
+	
+	// Handle favicon.ico requests
+	r.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/x-icon")
+		// Return empty response to prevent 404
+		w.WriteHeader(http.StatusNoContent)
 	})
 
 	// API routes
