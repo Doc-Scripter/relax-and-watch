@@ -1,0 +1,23 @@
+# For more information on how to deploy services to Render, see the docs at:
+# https://render.com/docs/yaml
+
+services:
+  - type: web
+    name: backend
+    env: go
+    plan: free
+    buildCommand: go mod tidy && go build -o main backend/cmd/main.go
+    startCommand: ./main
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8080"
+
+  - type: static
+    name: frontend
+    env: static
+    buildCommand: "npm install && npm run build" # Assuming a build step for the frontend
+    staticPublishPath: frontend/public # Adjust this if your build output is different
+    envVars:
+      - key: REACT_APP_BACKEND_URL
+        value: "https://relax-and-watch.onrender.com" # Replace with your backend service URL
