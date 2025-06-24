@@ -12,6 +12,7 @@ import (
 	"r.a.w/backend/internal/api"
 	"r.a.w/backend/internal/handlers"
 	"r.a.w/backend/internal/router"
+	"r.a.w/backend/internal/services"
 	"r.a.w/backend/pkg/logger"
 )
 
@@ -47,12 +48,18 @@ func main() {
 
 	// Initialize services
 	movieService := api.NewMovieService(tmdbAPIKey, omdbAPIKey, appLogger)
+	
+	// Create data directory for watchlists
+	dataDir := filepath.Join(currentDir, "..", "data")
+	watchlistService := services.NewWatchlistService(dataDir, appLogger)
+	exportService := services.NewExportService(appLogger)
 
 	// Initialize handlers
 	movieHandler := handlers.NewMovieHandler(movieService, appLogger)
+	watchlistHandler := handlers.NewWatchlistHandler(watchlistService, exportService, appLogger)
 
 	// Setup routes
-	r := router.SetupRoutes(movieHandler)
+	r := router.SetupRoutes(movieHandler, watchlistHandler)
 
 	// Start server
 	fmt.Println("Server starting on localhost:8080")
