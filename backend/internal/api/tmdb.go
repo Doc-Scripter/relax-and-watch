@@ -39,9 +39,18 @@ func (c *TMDBClient) GetMovieDetails(movieID int) (map[string]interface{}, error
 }
 
 // GetTrendingMovies fetches trending movies from TMDB.
-func (c *TMDBClient) GetTrendingMovies() (map[string]interface{}, error) {
+func (c *TMDBClient) GetTrendingMovies() ([]interface{}, error) {
 	url := fmt.Sprintf("%s/trending/movie/week?api_key=%s", TMDB_BASE_URL, c.APIKey)
-	return c.fetchData(url)
+	data, err := c.fetchData(url)
+	if err != nil {
+		return nil, err
+	}
+
+	// TMDB trending API returns a map with a "results" key containing the array of movies
+	if results, ok := data["results"].([]interface{}); ok {
+		return results, nil
+	}
+	return nil, fmt.Errorf("could not find 'results' array in TMDB trending response")
 }
 
 // fetchData makes an HTTP GET request and unmarshals the JSON response.
