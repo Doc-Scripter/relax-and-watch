@@ -91,6 +91,80 @@ func main() {
 		appLogger.Success("Successfully fetched trending movies")
 	}).Methods("GET")
 
+	// API endpoint for movie credits (cast and crew)
+	r.HandleFunc("/api/movie/{id}/credits", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		idStr := vars["id"]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
+			return
+		}
+
+		credits, err := movieService.GetMovieCredits(id)
+		if err != nil {
+			appLogger.Error("Error fetching movie credits for ID %d: %v", id, err)
+			http.Error(w, fmt.Sprintf("Error fetching movie credits: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(credits)
+		appLogger.Success("Successfully fetched movie credits for ID %d", id)
+	}).Methods("GET")
+
+	// API endpoint for genres
+	r.HandleFunc("/api/genres", func(w http.ResponseWriter, r *http.Request) {
+		genres, err := movieService.GetGenres()
+		if err != nil {
+			appLogger.Error("Error fetching genres: %v", err)
+			http.Error(w, fmt.Sprintf("Error fetching genres: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(genres)
+		appLogger.Success("Successfully fetched genres")
+	}).Methods("GET")
+
+	// API endpoint for movie search
+	r.HandleFunc("/api/search", func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query().Get("q")
+		if query == "" {
+			http.Error(w, "Search query is required", http.StatusBadRequest)
+			return
+		}
+
+		searchResults, err := movieService.SearchMovies(query)
+		if err != nil {
+			appLogger.Error("Error searching movies with query '%s': %v", query, err)
+			http.Error(w, fmt.Sprintf("Error searching movies: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(searchResults)
+		appLogger.Success("Successfully searched movies with query '%s'", query)
+	}).Methods("GET")
+
+	// API endpoint for movie discovery with filters
+	r.HandleFunc("/api/discover", func(w http.ResponseWriter, r *http.Request) {
+		genreID := r.URL.Query().Get("genre")
+		year := r.URL.Query().Get("year")
+		sortBy := r.URL.Query().Get("sort_by")
+
+		movies, err := movieService.DiscoverMovies(genreID, year, sortBy)
+		if err != nil {
+			appLogger.Error("Error discovering movies: %v", err)
+			http.Error(w, fmt.Sprintf("Error discovering movies: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(movies)
+		appLogger.Success("Successfully discovered movies with filters")
+	}).Methods("GET")
+
 	fmt.Println("Server starting on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
