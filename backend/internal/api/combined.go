@@ -82,7 +82,7 @@ func (s *MovieService) GetMovieDetails(tmdbMovieID int, movieTitle string) (*Com
 }
 
 // GetTrendingMovies fetches trending movies from TMDB.
-func (s *MovieService) GetTrendingMovies() (map[string]interface{}, error) {
+func (s *MovieService) GetTrendingMovies() ([]interface{}, error) {
 	return s.TMDBClient.GetTrendingMovies()
 }
 
