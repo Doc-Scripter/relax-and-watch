@@ -38,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="rating"><i class="fas fa-star"></i> ${voteAverage}</div>
                     </div>
                 `;
+                movieCard.dataset.movieId = movie.id; // Store movie ID
+                movieCard.addEventListener('click', () => fetchMovieDetails(movie.id));
                 movieGrid.appendChild(movieCard);
             });
         } else {
@@ -69,6 +71,58 @@ document.addEventListener('DOMContentLoaded', () => {
             37: 'Western'
         };
         return genres[genreId] || 'Unknown';
+    }
+
+    async function fetchMovieDetails(movieId) {
+        try {
+            const response = await fetch(`/api/movie/${movieId}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const movieDetails = await response.json();
+            displayMovieDetailsModal(movieDetails);
+        } catch (error) {
+            console.error('Error fetching movie details:', error);
+            alert('Failed to load movie details. Please try again later.');
+        }
+    }
+
+    function displayMovieDetailsModal(movie) {
+        // Create modal elements dynamically or use a pre-defined modal structure in index.html
+        // For now, let's just log the details and show a simple alert
+        console.log('Movie Details:', movie);
+        const modal = document.getElementById('movieDetailsModal');
+        const modalBody = document.getElementById('modal-body');
+
+        modalBody.innerHTML = `
+            <h2>${movie.Title}</h2>
+            <p><strong>Year:</strong> ${movie.Year}</p>
+            <p><strong>Rated:</strong> ${movie.Rated}</p>
+            <p><strong>Released:</strong> ${movie.Released}</p>
+            <p><strong>Runtime:</strong> ${movie.Runtime}</p>
+            <p><strong>Genre:</strong> ${movie.Genre}</p>
+            <p><strong>Director:</strong> ${movie.Director}</p>
+            <p><strong>Writer:</strong> ${movie.Writer}</p>
+            <p><strong>Actors:</strong> ${movie.Actors}</p>
+            <p><strong>Plot:</strong> ${movie.Plot}</p>
+            <p><strong>Language:</strong> ${movie.Language}</p>
+            <p><strong>Country:</strong> ${movie.Country}</p>
+            <p><strong>Awards:</strong> ${movie.Awards}</p>
+            <p><strong>IMDB Rating:</strong> ${movie.imdbRating}</p>
+            <p><strong>Box Office:</strong> ${movie.BoxOffice}</p>
+        `;
+        modal.style.display = 'block';
+
+        const closeButton = document.querySelector('.close-button');
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
     }
 
     // Initial fetch when the page loads
