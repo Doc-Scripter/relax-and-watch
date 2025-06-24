@@ -2,8 +2,9 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"strings"
+
+	"r.a.w/backend/pkg/logger"
 )
 
 // CombinedMovieData represents the combined data from TMDB and OMDB.
@@ -16,13 +17,15 @@ type CombinedMovieData struct {
 type MovieService struct {
 	TMDBClient *TMDBClient
 	OMDBClient *OMDBClient
+	Logger     *logger.Logger
 }
 
 // NewMovieService creates a new MovieService.
-func NewMovieService(tmdbAPIKey, omdbAPIKey string) *MovieService {
+func NewMovieService(tmdbAPIKey, omdbAPIKey string, appLogger *logger.Logger) *MovieService {
 	return &MovieService{
-		TMDBClient: NewTMDBClient(tmdbAPIKey),
-		OMDBClient: NewOMDBClient(omdbAPIKey),
+		TMDBClient: NewTMDBClient(tmdbAPIKey, appLogger),
+		OMDBClient: NewOMDBClient(omdbAPIKey, appLogger),
+		Logger:     appLogger,
 	}
 }
 
@@ -34,7 +37,7 @@ func (s *MovieService) GetMovieDetails(tmdbMovieID int, movieTitle string) (*Com
 	// 1. Fetch from TMDB
 	tmdbData, err := s.TMDBClient.GetMovieDetails(tmdbMovieID)
 	if err != nil {
-		log.Printf("Error fetching from TMDB for ID %d: %v", tmdbMovieID, err)
+		s.Logger.Warning("Error fetching from TMDB for ID %d: %v", tmdbMovieID, err)
 		// Continue to OMDB even if TMDB fails, as OMDB might have some data
 	} else {
 		combinedData.TMDBData = tmdbData
@@ -46,7 +49,7 @@ func (s *MovieService) GetMovieDetails(tmdbMovieID int, movieTitle string) (*Com
 		if imdbID, ok := tmdbData["imdb_id"].(string); ok && imdbID != "" {
 			omdbData, err := s.OMDBClient.GetMovieByID(imdbID)
 			if err != nil {
-				log.Printf("Error fetching from OMDB by IMDB ID %s: %v", imdbID, err)
+				s.Logger.Warning("Error fetching from OMDB by IMDB ID %s: %v", imdbID, err)
 			} else {
 				combinedData.OMDBData = omdbData
 			}
@@ -59,7 +62,7 @@ func (s *MovieService) GetMovieDetails(tmdbMovieID int, movieTitle string) (*Com
 	if combinedData.OMDBData == nil && omdbSearchTitle != "" {
 		omdbData, err := s.OMDBClient.GetMovieByTitle(omdbSearchTitle)
 		if err != nil {
-			log.Printf("Error fetching from OMDB by title '%s': %v", omdbSearchTitle, err)
+			s.Logger.Warning("Error fetching from OMDB by title '%s': %v", omdbSearchTitle, err)
 		} else {
 			combinedData.OMDBData = omdbData
 		}
@@ -71,7 +74,7 @@ func (s *MovieService) GetMovieDetails(tmdbMovieID int, movieTitle string) (*Com
 	}
 
 	if err := s.validateMovieData(combinedData); err != nil {
-		log.Printf("Validation warning for movie ID %d: %v", tmdbMovieID, err)
+		s.Logger.Warning("Validation warning for movie ID %d: %v", tmdbMovieID, err)
 		// Optionally, you can return the data with a warning or return an error
 	}
 
