@@ -4,4 +4,4 @@ run:
 format:
 	cd backend/cmd && gofmt -w -s .
 restart-server:
-	fuser -k 8080/tcp
+	fuser -k 8080/tcp&&run

@@ -53,6 +53,39 @@ func (c *TMDBClient) GetTrendingMovies() ([]interface{}, error) {
 	return nil, fmt.Errorf("could not find 'results' array in TMDB trending response")
 }
 
+// GetTrendingContent fetches trending movies or TV shows from TMDB with pagination.
+func (c *TMDBClient) GetTrendingContent(contentType string, page int) (map[string]interface{}, error) {
+	if contentType == "" {
+		contentType = "movie"
+	}
+	if page < 1 {
+		page = 1
+	}
+	
+	url := fmt.Sprintf("%s/trending/%s/week?api_key=%s&page=%d", TMDB_BASE_URL, contentType, c.APIKey, page)
+	return c.fetchData(url)
+}
+
+// GetTVDetails fetches TV show details from TMDB.
+func (c *TMDBClient) GetTVDetails(tvID int) (map[string]interface{}, error) {
+	url := fmt.Sprintf("%s/tv/%d?api_key=%s", TMDB_BASE_URL, tvID, c.APIKey)
+	return c.fetchData(url)
+}
+
+// GetTVGenres fetches the list of TV genres from TMDB.
+func (c *TMDBClient) GetTVGenres() ([]interface{}, error) {
+	url := fmt.Sprintf("%s/genre/tv/list?api_key=%s", TMDB_BASE_URL, c.APIKey)
+	data, err := c.fetchData(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if genres, ok := data["genres"].([]interface{}); ok {
+		return genres, nil
+	}
+	return nil, fmt.Errorf("could not find 'genres' array in TMDB TV genres response")
+}
+
 // GetMovieCredits fetches cast and crew information for a movie from TMDB.
 func (c *TMDBClient) GetMovieCredits(movieID int) (map[string]interface{}, error) {
 	url := fmt.Sprintf("%s/movie/%d/credits?api_key=%s", TMDB_BASE_URL, movieID, c.APIKey)
@@ -87,6 +120,19 @@ func (c *TMDBClient) SearchMovies(query string) ([]interface{}, error) {
 	return nil, fmt.Errorf("could not find 'results' array in TMDB search response")
 }
 
+// SearchContent searches for movies or TV shows by title from TMDB with pagination.
+func (c *TMDBClient) SearchContent(query, contentType string, page int) (map[string]interface{}, error) {
+	if contentType == "" {
+		contentType = "movie"
+	}
+	if page < 1 {
+		page = 1
+	}
+	
+	url := fmt.Sprintf("%s/search/%s?api_key=%s&query=%s&page=%d", TMDB_BASE_URL, contentType, c.APIKey, query, page)
+	return c.fetchData(url)
+}
+
 // DiscoverMovies discovers movies with filters from TMDB.
 func (c *TMDBClient) DiscoverMovies(genreID, year, sortBy string) ([]interface{}, error) {
 	url := fmt.Sprintf("%s/discover/movie?api_key=%s", TMDB_BASE_URL, c.APIKey)
@@ -112,6 +158,57 @@ func (c *TMDBClient) DiscoverMovies(genreID, year, sortBy string) ([]interface{}
 		return results, nil
 	}
 	return nil, fmt.Errorf("could not find 'results' array in TMDB discover response")
+}
+
+// DiscoverContent discovers movies or TV shows with filters from TMDB with pagination.
+func (c *TMDBClient) DiscoverContent(contentType string, filters map[string]string, page int) (map[string]interface{}, error) {
+	if contentType == "" {
+		contentType = "movie"
+	}
+	if page < 1 {
+		page = 1
+	}
+	
+	url := fmt.Sprintf("%s/discover/%s?api_key=%s&page=%d", TMDB_BASE_URL, contentType, c.APIKey, page)
+	
+	// Add filters
+	if genreID, ok := filters["genre"]; ok && genreID != "" && genreID != "all" {
+		url += fmt.Sprintf("&with_genres=%s", genreID)
+	}
+	
+	if year, ok := filters["year"]; ok && year != "" && year != "all" {
+		if contentType == "movie" {
+			url += fmt.Sprintf("&year=%s", year)
+		} else {
+			url += fmt.Sprintf("&first_air_date_year=%s", year)
+		}
+	}
+	
+	if rating, ok := filters["rating"]; ok && rating != "" && rating != "all" {
+		url += fmt.Sprintf("&vote_average.gte=%s", rating)
+	}
+	
+	if runtime, ok := filters["runtime"]; ok && runtime != "" && runtime != "all" {
+		// Parse runtime filter (e.g., "90-120", "180-", "0-90")
+		switch runtime {
+		case "0-90":
+			url += "&with_runtime.lte=90"
+		case "90-120":
+			url += "&with_runtime.gte=90&with_runtime.lte=120"
+		case "120-180":
+			url += "&with_runtime.gte=120&with_runtime.lte=180"
+		case "180-":
+			url += "&with_runtime.gte=180"
+		}
+	}
+	
+	if sortBy, ok := filters["sort_by"]; ok && sortBy != "" {
+		url += fmt.Sprintf("&sort_by=%s", sortBy)
+	} else {
+		url += "&sort_by=popularity.desc"
+	}
+
+	return c.fetchData(url)
 }
 
 // fetchData makes an HTTP GET request and unmarshals the JSON response.
