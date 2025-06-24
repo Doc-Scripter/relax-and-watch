@@ -86,6 +86,26 @@ func (s *MovieService) GetTrendingMovies() ([]interface{}, error) {
 	return s.TMDBClient.GetTrendingMovies()
 }
 
+// GetMovieCredits fetches cast and crew information for a movie.
+func (s *MovieService) GetMovieCredits(movieID int) (map[string]interface{}, error) {
+	return s.TMDBClient.GetMovieCredits(movieID)
+}
+
+// GetGenres fetches the list of movie genres.
+func (s *MovieService) GetGenres() ([]interface{}, error) {
+	return s.TMDBClient.GetGenres()
+}
+
+// SearchMovies searches for movies by title.
+func (s *MovieService) SearchMovies(query string) ([]interface{}, error) {
+	return s.TMDBClient.SearchMovies(query)
+}
+
+// DiscoverMovies discovers movies with filters.
+func (s *MovieService) DiscoverMovies(genreID, year, sortBy string) ([]interface{}, error) {
+	return s.TMDBClient.DiscoverMovies(genreID, year, sortBy)
+}
+
 // validateMovieData performs basic validation on the combined movie data.
 func (s *MovieService) validateMovieData(data *CombinedMovieData) error {
 	var errors []string
