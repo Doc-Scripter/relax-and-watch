@@ -8,9 +8,13 @@ body {
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+    display: flex
+    ;
+        /* max-width: 1200px; */
+        margin: 0 auto;
+        padding: 20px;
+        flex-direction: column;
+        flex-wrap: wrap;
 }
 
 /* Navbar Styles */
@@ -170,9 +174,13 @@ body {
 }
 
 .movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
+    display: flex
+    ;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: space-evenly;
 }
 
 .movie-card {
