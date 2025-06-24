@@ -86,6 +86,48 @@ func (s *MovieService) GetTrendingMovies() ([]interface{}, error) {
 	return s.TMDBClient.GetTrendingMovies()
 }
 
+// GetTrendingContent fetches trending movies or TV shows from TMDB with pagination.
+func (s *MovieService) GetTrendingContent(contentType string, page int) (map[string]interface{}, error) {
+	return s.TMDBClient.GetTrendingContent(contentType, page)
+}
+
+// GetTVDetails fetches TV show details, combining data from TMDB and OMDB.
+func (s *MovieService) GetTVDetails(tmdbTVID int, tvTitle string) (*CombinedMovieData, error) {
+	combinedData := &CombinedMovieData{}
+
+	// 1. Fetch from TMDB
+	tmdbData, err := s.TMDBClient.GetTVDetails(tmdbTVID)
+	if err != nil {
+		s.Logger.Warning("Error fetching TV show from TMDB for ID %d: %v", tmdbTVID, err)
+	} else {
+		combinedData.TMDBData = tmdbData
+	}
+
+	// 2. Try to fetch from OMDB using title
+	omdbSearchTitle := tvTitle
+	if tmdbData != nil {
+		if name, ok := tmdbData["name"].(string); ok && name != "" {
+			omdbSearchTitle = name // Use TMDB name if available
+		}
+	}
+
+	if omdbSearchTitle != "" {
+		omdbData, err := s.OMDBClient.GetMovieByTitle(omdbSearchTitle)
+		if err != nil {
+			s.Logger.Warning("Error fetching TV show from OMDB by title '%s': %v", omdbSearchTitle, err)
+		} else {
+			combinedData.OMDBData = omdbData
+		}
+	}
+
+	// 3. Data Validation
+	if combinedData.TMDBData == nil && combinedData.OMDBData == nil {
+		return nil, fmt.Errorf("could not retrieve TV show details from either TMDB or OMDB")
+	}
+
+	return combinedData, nil
+}
+
 // GetMovieCredits fetches cast and crew information for a movie.
 func (s *MovieService) GetMovieCredits(movieID int) (map[string]interface{}, error) {
 	return s.TMDBClient.GetMovieCredits(movieID)
@@ -96,14 +138,44 @@ func (s *MovieService) GetGenres() ([]interface{}, error) {
 	return s.TMDBClient.GetGenres()
 }
 
+// GetGenresByType fetches the list of genres for movies or TV shows.
+func (s *MovieService) GetGenresByType(contentType string) (map[string]interface{}, error) {
+	var genres []interface{}
+	var err error
+	
+	if contentType == "tv" {
+		genres, err = s.TMDBClient.GetTVGenres()
+	} else {
+		genres, err = s.TMDBClient.GetGenres()
+	}
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	return map[string]interface{}{
+		"genres": genres,
+	}, nil
+}
+
 // SearchMovies searches for movies by title.
 func (s *MovieService) SearchMovies(query string) ([]interface{}, error) {
 	return s.TMDBClient.SearchMovies(query)
 }
 
+// SearchContent searches for movies or TV shows by title with pagination.
+func (s *MovieService) SearchContent(query, contentType string, page int) (map[string]interface{}, error) {
+	return s.TMDBClient.SearchContent(query, contentType, page)
+}
+
 // DiscoverMovies discovers movies with filters.
 func (s *MovieService) DiscoverMovies(genreID, year, sortBy string) ([]interface{}, error) {
 	return s.TMDBClient.DiscoverMovies(genreID, year, sortBy)
+}
+
+// DiscoverContent discovers movies or TV shows with filters and pagination.
+func (s *MovieService) DiscoverContent(contentType string, filters map[string]string, page int) (map[string]interface{}, error) {
+	return s.TMDBClient.DiscoverContent(contentType, filters, page)
 }
 
 // validateMovieData performs basic validation on the combined movie data.
