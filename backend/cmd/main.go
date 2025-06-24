@@ -91,6 +91,6 @@ func main() {
 		appLogger.Success("Successfully fetched trending movies")
 	}).Methods("GET")
 
-	appLogger.Success("Server starting on localhost:8080")
+	fmt.Println("Server starting on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
