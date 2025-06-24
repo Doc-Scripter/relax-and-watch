@@ -189,15 +189,117 @@ body {
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s ease;
+    cursor: pointer;
 }
 
 .movie-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .movie-card img {
     width: 100%;
     height: 300px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #16213e;
+    margin: 5% auto;
+    padding: 30px;
+    border: 1px solid #0f3460;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 900px;
+    position: relative;
+    color: #e0e0e0;
+}
+
+.movie-details-container {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.movie-poster {
+    flex-shrink: 0;
+}
+
+.movie-poster img {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.movie-info-detailed {
+    flex: 1;
+}
+
+.movie-info-detailed h2 {
+    color: #e94560;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+.movie-info-detailed p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.movie-info-detailed strong {
+    color: #e94560;
+    display: inline-block;
+    min-width: 100px;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    .movie-details-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .movie-poster img {
+        max-width: 250px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 2% auto;
+        padding: 20px;
+    }
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #e94560;
+    text-decoration: none;
+    cursor: pointer;
     object-fit: cover;
     display: block;
 }
