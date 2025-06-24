@@ -42,23 +42,23 @@ func (l *Logger) Close() {
 }
 
 // log writes a message to the log file with the specified level.
-func (l *Logger) log(level, message string) {
+func (l *Logger) log(message string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	l.stdLogger.Printf("[%s], %s", level, message)
+	l.stdLogger.Printf("%s,",  message)
 }
 
 // Error logs an error message.
 func (l *Logger) Error(format string, v ...interface{}) {
-	l.log(LevelError, fmt.Sprintf(format, v...))
+	l.log(fmt.Sprintf("[ERROR]: %s", fmt.Sprintf(format, v...)))
 }
 
 // Warning logs a warning message.
 func (l *Logger) Warning(format string, v ...interface{}) {
-	l.log(LevelWarning, fmt.Sprintf(format, v...))
+	l.log( fmt.Sprintf("[WARNING]: %s", fmt.Sprintf(format, v...)))
 }
 
 // Success logs a success message.
 func (l *Logger) Success(format string, v ...interface{}) {
-	l.log(LevelSuccess, fmt.Sprintf(format, v...))
+	l.log( fmt.Sprintf("[SUCCESS]: %s", fmt.Sprintf(format, v...)))
 }
