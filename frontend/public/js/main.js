@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     async function init() {
+        migrateWatchlistData();
         updateWatchlistCount();
         await loadGenres();
         await loadYears();
@@ -41,6 +42,28 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadRuntimes();
         await fetchTrendingMovies();
         setupEventListeners();
+    }
+
+    function migrateWatchlistData() {
+        // Migrate existing watchlist items to new structure
+        let needsUpdate = false;
+        watchlist = watchlist.map(item => {
+            if (!item.hasOwnProperty('isWatched')) {
+                needsUpdate = true;
+                return {
+                    ...item,
+                    addedAt: new Date().toISOString(),
+                    isWatched: false,
+                    watchedAt: null,
+                    userNotes: ''
+                };
+            }
+            return item;
+        });
+        
+        if (needsUpdate) {
+            localStorage.setItem('watchlist', JSON.stringify(watchlist));
+        }
     }
 
     function setupEventListeners() {
@@ -217,17 +240,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            // Handle both paginated and non-paginated responses
+            // Backend handles pagination, so use the data directly
             const results = data.results || data;
-            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
-            totalResults = data.total_results || data.length || results.length || 0;
+            totalPages = data.total_pages || 1;
+            totalResults = data.total_results || (Array.isArray(results) ? results.length : 0);
             
-            // Slice results for client-side pagination if needed
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
-            
-            displayMovies(paginatedResults);
+            displayMovies(results);
             updatePaginationInfo();
             
         } catch (error) {
@@ -255,17 +273,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            // Handle both paginated and non-paginated responses
+            // Backend handles pagination, so use the data directly
             const results = data.results || data;
-            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
-            totalResults = data.total_results || data.length || results.length || 0;
+            totalPages = data.total_pages || 1;
+            totalResults = data.total_results || (Array.isArray(results) ? results.length : 0);
             
-            // Slice results for client-side pagination if needed
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
-            
-            displayMovies(paginatedResults);
+            displayMovies(results);
             updatePaginationInfo();
             
         } catch (error) {
@@ -299,17 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            // Handle both paginated and non-paginated responses
+            // Backend handles pagination, so use the data directly
             const results = data.results || data;
-            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
-            totalResults = data.total_results || data.length || results.length || 0;
+            totalPages = data.total_pages || 1;
+            totalResults = data.total_results || (Array.isArray(results) ? results.length : 0);
             
-            // Slice results for client-side pagination if needed
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
-            
-            displayMovies(paginatedResults);
+            displayMovies(results);
             updatePaginationInfo();
             
         } catch (error) {
@@ -462,7 +470,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showWatchlist() {
         currentMode = 'watchlist';
-        trendingSection.textContent = 'Your Watchlist';
+        trendingSection.innerHTML = `
+            Your Watchlist
+            <div class="watchlist-controls">
+                <button class="export-btn" onclick="exportWatchlist('csv')">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+                <button class="export-btn" onclick="exportWatchlist('pdf')">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+            </div>
+        `;
         
         if (watchlist.length === 0) {
             movieGrid.innerHTML = '<p>Your watchlist is empty. Add some movies or TV shows!</p>';
@@ -490,13 +508,20 @@ document.addEventListener('DOMContentLoaded', () => {
         paginatedWatchlist.forEach(item => {
             const movieCard = document.createElement('div');
             movieCard.classList.add('movie-card');
+            const isWatched = item.isWatched || false;
 
             movieCard.innerHTML = `
                 <img src="${item.poster}" alt="${item.title}">
                 <div class="movie-info">
-                    <h3>${item.title}</h3>
+                    <h3>${item.title} ${isWatched ? '<span class="watched-badge">✓ Watched</span>' : ''}</h3>
                     <p>${item.type === 'movie' ? 'Movie' : 'TV Series'}</p>
+                    ${item.watchedAt ? `<p class="watched-date">Watched: ${new Date(item.watchedAt).toLocaleDateString()}</p>` : ''}
+                    ${item.userNotes ? `<p class="user-notes">Notes: ${item.userNotes}</p>` : ''}
                     <div class="movie-actions">
+                        <button class="watched-btn ${isWatched ? 'watched' : ''}" 
+                                onclick="toggleWatched(event, ${item.id})">
+                            ${isWatched ? '✓ Watched' : 'Mark as Watched'}
+                        </button>
                         <button class="watchlist-btn in-watchlist" 
                                 onclick="toggleWatchlist(event, ${item.id}, '${item.title.replace(/'/g, "\\'")}', '${item.poster}', '${item.type}')">
                             ✓ Remove
@@ -506,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             movieCard.dataset.movieId = item.id;
             movieCard.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('watchlist-btn')) {
+                if (!e.target.classList.contains('watchlist-btn') && !e.target.classList.contains('watched-btn')) {
                     fetchMovieDetails(item.id, item.type);
                 }
             });
@@ -529,17 +554,183 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // If we're currently viewing the watchlist, refresh it
             if (currentMode === 'watchlist') {
+                // Recalculate pagination after removal
+                totalResults = watchlist.length;
+                totalPages = Math.ceil(totalResults / itemsPerPage) || 1;
+                
+                // Adjust current page if necessary
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+                
                 showWatchlist();
             }
         } else {
             // Add to watchlist
-            watchlist.push({ id, title, poster, type });
+            watchlist.push({ 
+                id, 
+                title, 
+                poster, 
+                type, 
+                addedAt: new Date().toISOString(),
+                isWatched: false,
+                watchedAt: null,
+                userNotes: ''
+            });
             event.target.textContent = '✓ In Watchlist';
             event.target.classList.add('in-watchlist');
         }
         
         localStorage.setItem('watchlist', JSON.stringify(watchlist));
         updateWatchlistCount();
+    }
+
+    function toggleWatched(event, id) {
+        event.stopPropagation();
+        
+        const itemIndex = watchlist.findIndex(item => item.id === id);
+        if (itemIndex > -1) {
+            const item = watchlist[itemIndex];
+            
+            if (item.isWatched) {
+                // Mark as unwatched
+                item.isWatched = false;
+                item.watchedAt = null;
+                item.userNotes = '';
+                event.target.textContent = 'Mark as Watched';
+                event.target.classList.remove('watched');
+            } else {
+                // Mark as watched - optionally ask for notes
+                const notes = prompt('Add notes (optional):') || '';
+                item.isWatched = true;
+                item.watchedAt = new Date().toISOString();
+                item.userNotes = notes;
+                event.target.textContent = '✓ Watched';
+                event.target.classList.add('watched');
+            }
+            
+            localStorage.setItem('watchlist', JSON.stringify(watchlist));
+            
+            // Refresh the watchlist view to show updated status
+            if (currentMode === 'watchlist') {
+                showWatchlist();
+            }
+        }
+    }
+
+    async function exportWatchlist(format) {
+        if (watchlist.length === 0) {
+            alert('Your watchlist is empty. Add some movies or TV shows first!');
+            return;
+        }
+
+        try {
+            // For now, we'll create a simple client-side export
+            // In a real app, you'd call the backend API
+            if (format === 'csv') {
+                exportToCSV();
+            } else if (format === 'pdf') {
+                exportToPDF();
+            }
+        } catch (error) {
+            console.error('Error exporting watchlist:', error);
+            alert('Failed to export watchlist. Please try again.');
+        }
+    }
+
+    function exportToCSV() {
+        const headers = ['Title', 'Type', 'Status', 'Added Date', 'Watched Date', 'Notes'];
+        const csvContent = [
+            headers.join(','),
+            ...watchlist.map(item => [
+                `"${item.title.replace(/"/g, '""')}"`,
+                item.type === 'movie' ? 'Movie' : 'TV Series',
+                item.isWatched ? 'Watched' : 'To Watch',
+                item.addedAt ? new Date(item.addedAt).toLocaleDateString() : 'N/A',
+                item.watchedAt ? new Date(item.watchedAt).toLocaleDateString() : 'N/A',
+                `"${(item.userNotes || '').replace(/"/g, '""')}"`
+            ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `watchlist_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportToPDF() {
+        const watchedCount = watchlist.filter(item => item.isWatched).length;
+        const unwatchedCount = watchlist.length - watchedCount;
+        
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>My Watchlist Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .stats { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .movie-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .movie-title { font-weight: bold; color: #333; }
+        .movie-details { color: #666; font-size: 14px; }
+        .watched { color: #28a745; }
+        .unwatched { color: #dc3545; }
+        .notes { font-style: italic; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>My Watchlist Report</h1>
+        <p>Generated on ${new Date().toLocaleDateString()}</p>
+    </div>
+    
+    <div class="stats">
+        <h2>Statistics</h2>
+        <p><strong>Total Items:</strong> ${watchlist.length}</p>
+        <p><strong>Watched:</strong> ${watchedCount}</p>
+        <p><strong>To Watch:</strong> ${unwatchedCount}</p>
+        <p><strong>Completion Rate:</strong> ${watchlist.length > 0 ? Math.round((watchedCount / watchlist.length) * 100) : 0}%</p>
+    </div>
+    
+    <div class="movies-section">
+        <h2>Movies & TV Shows (${watchlist.length})</h2>
+        ${watchlist.map(item => `
+            <div class="movie-item">
+                <div class="movie-title">${item.title}</div>
+                <div class="movie-details">
+                    <span>${item.type === 'movie' ? 'Movie' : 'TV Series'}</span> • 
+                    <span class="${item.isWatched ? 'watched' : 'unwatched'}">
+                        ${item.isWatched ? '✓ Watched' : 'To Watch'}
+                    </span>
+                    ${item.addedAt ? ` • Added: ${new Date(item.addedAt).toLocaleDateString()}` : ''}
+                    ${item.watchedAt ? ` • Watched: ${new Date(item.watchedAt).toLocaleDateString()}` : ''}
+                </div>
+                ${item.userNotes ? `<div class="notes">Notes: ${item.userNotes}</div>` : ''}
+            </div>
+        `).join('')}
+    </div>
+</body>
+</html>`;
+
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `watchlist_${new Date().toISOString().split('T')[0]}.html`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show instructions for PDF conversion
+        alert('HTML file downloaded! To convert to PDF:\n1. Open the downloaded HTML file in your browser\n2. Press Ctrl+P (or Cmd+P on Mac)\n3. Select "Save as PDF" as the destination\n4. Click Save');
     }
 
     function updateWatchlistCount() {
@@ -681,4 +872,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Make functions globally available
     window.toggleWatchlist = toggleWatchlist;
+    window.toggleWatched = toggleWatched;
+    window.exportWatchlist = exportWatchlist;
 });

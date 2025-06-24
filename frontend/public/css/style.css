@@ -180,6 +180,10 @@ body {
     color: #e0e0e0;
     font-size: 24px;
     margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .pagination-controls {
@@ -386,6 +390,107 @@ body {
 .watchlist-btn.in-watchlist {
     background-color: #e94560;
     color: white;
+}
+
+/* Watchlist specific styles */
+.watchlist-controls {
+    display: flex;
+    gap: 10px;
+    margin-left: 20px;
+    align-items: center;
+}
+
+.export-btn {
+    background-color: #0f3460;
+    color: #e0e0e0;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.export-btn:hover {
+    background-color: #e94560;
+}
+
+.export-btn i {
+    font-size: 14px;
+}
+
+.watched-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+    margin-right: 5px;
+}
+
+.watched-btn:hover {
+    background-color: #218838;
+}
+
+.watched-btn.watched {
+    background-color: #6c757d;
+}
+
+.watched-btn.watched:hover {
+    background-color: #5a6268;
+}
+
+.watched-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.watched-date {
+    color: #28a745 !important;
+    font-size: 12px !important;
+    margin-bottom: 5px !important;
+}
+
+.user-notes {
+    color: #ffc107 !important;
+    font-size: 12px !important;
+    font-style: italic;
+    margin-bottom: 5px !important;
+}
+
+/* Responsive adjustments for watchlist controls */
+@media (max-width: 768px) {
+    .watchlist-controls {
+        margin-left: 0;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .export-btn {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+    
+    .movie-actions {
+        flex-direction: column;
+        gap: 5px;
+        align-items: stretch;
+    }
+    
+    .watched-btn, .watchlist-btn {
+        margin: 0;
+        text-align: center;
+    }
 }
 
 /* Loading indicator */

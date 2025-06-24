@@ -1,31 +1,31 @@
-# relax-and-watch
+# Relax and Watch
 
-## Project Overview
+A streaming service application built with Go backend and React frontend.
 
-`relax-and-watch` is a comprehensive entertainment discovery platform designed to help users find and manage movies and TV shows. It offers a rich set of features for searching, viewing detailed information, managing personal watchlists, and discovering trending content.
+## Deployment on Render
 
-## Key Features
+1. Push your code to a GitHub repository
+2. Create a new Render account or sign in
+3. Click "New" and select "Web Service"
+4. Connect your GitHub repository
+5. Render will automatically detect the `render.yaml` file and configure the services
+6. Click "Create Web Service" to deploy
 
-*   **Search Functionality**: Real-time search for movies and TV shows.
-*   **Detailed View Pages**: Comprehensive pages for each title, displaying:
-    *   Title
-    *   Plot summary
-    *   Cast information
-    *   Ratings
-    *   Release date
-    *   Poster images
-*   **Personal Watchlist Management**: Users can:
-    *   Add and remove titles from their watchlist.
-    *   Mark titles as watched.
-*   **Trending Content Dashboard**: A dedicated section showcasing popular movies and TV shows.
-*   **Genre-based Filtering**: Browse content by various genres and categories.
-*   **User Ratings Integration**: Aggregates ratings from multiple sources, including IMDB, Rotten Tomatoes, and TMDB.
-*   **Recommendation Engine**: Provides personalized content recommendations based on user's watchlist preferences.
-*   **Responsive Design**: Optimized for seamless viewing across mobile and desktop devices.
+For more details, see [Render's documentation](https://render.com/docs/deploy-go)
 
-## Advanced Features
+## Local Development
 
-*   **Advanced Filtering**: Filter content by year, rating, and runtime.
-*   **Watch Providers Integration**: Information on where to watch content (e.g., Netflix, Hulu).
-*   **Dark/Light Theme Toggle**: Customize the application's appearance.
-*   **Social Features**: Share favorite movies and TV shows with others.
+Run the backend:
+```
+make run
+```
+
+Format Go code:
+```
+make format
+```
+
+Restart server:
+```
+make restart-server
+```
