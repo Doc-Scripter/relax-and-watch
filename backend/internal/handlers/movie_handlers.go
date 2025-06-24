@@ -35,10 +35,24 @@ func (h *MovieHandler) GetMovieDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For demonstration, we'll use a placeholder title. In a real app, you might get this from a search or another API call.
-	combinedData, err := h.MovieService.GetMovieDetails(id, "")
+	// First get basic movie details from TMDB to extract the title
+	tmdbData, err := h.MovieService.TMDBClient.GetMovieDetails(id)
 	if err != nil {
-		h.Logger.Error("Error fetching movie details for ID %d: %v", id, err)
+		h.Logger.Error("Error fetching TMDB movie details for ID %d: %v", id, err)
+		http.Error(w, fmt.Sprintf("Error fetching movie details: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Extract title from TMDB data
+	movieTitle := ""
+	if title, ok := tmdbData["title"].(string); ok {
+		movieTitle = title
+	}
+
+	// Now get combined data with the proper title
+	combinedData, err := h.MovieService.GetMovieDetails(id, movieTitle)
+	if err != nil {
+		h.Logger.Error("Error fetching combined movie details for ID %d: %v", id, err)
 		http.Error(w, fmt.Sprintf("Error fetching movie details: %v", err), http.StatusInternalServerError)
 		return
 	}
