@@ -329,3 +329,45 @@ body {
 .movie-info .rating i {
     margin-right: 5px;
 }
+
+.movie-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.watchlist-btn {
+    background-color: #0f3460;
+    color: #e0e0e0;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.watchlist-btn:hover {
+    background-color: #e94560;
+}
+
+.watchlist-btn.in-watchlist {
+    background-color: #e94560;
+    color: white;
+}
+
+/* Loading indicator */
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #a0a0a0;
+}
+
+/* Pagination indicator */
+.pagination-info {
+    text-align: center;
+    padding: 20px;
+    color: #a0a0a0;
+    font-size: 14px;
+}
