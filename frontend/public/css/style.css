@@ -167,10 +167,41 @@ body {
     margin-top: 40px;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .trending-movies h2 {
     color: #e0e0e0;
-    margin-bottom: 20px;
     font-size: 24px;
+    margin: 0;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-controls label {
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.pagination-controls select {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #0f3460;
+    background-color: #0f3460;
+    color: #e0e0e0;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
 .movie-grid {
@@ -370,4 +401,44 @@ body {
     padding: 20px;
     color: #a0a0a0;
     font-size: 14px;
+}
+
+.pagination-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.pagination-buttons .btn {
+    background-color: #0f3460;
+    color: #e0e0e0;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-buttons .btn:hover:not(:disabled) {
+    background-color: #e94560;
+}
+
+.pagination-buttons .btn:disabled {
+    background-color: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .pagination-controls {
+        align-self: stretch;
+        justify-content: space-between;
+    }
 }
