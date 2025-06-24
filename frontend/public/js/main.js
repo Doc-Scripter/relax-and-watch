@@ -12,16 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const ratingSelect = document.getElementById('rating');
     const runtimeSelect = document.getElementById('runtime');
     const trendingSection = document.querySelector('.trending-movies h2');
+    const itemsPerPageSelect = document.getElementById('itemsPerPage');
+    const currentPageInfo = document.getElementById('currentPageInfo');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
     
     // State management
     let currentContentType = 'movie'; // 'movie' or 'tv'
     let currentPage = 1;
     let totalPages = 1;
+    let totalResults = 0;
+    let itemsPerPage = 20;
     let isLoading = false;
     let searchTimeout;
     let watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
     let currentQuery = '';
     let currentFilters = {};
+    let currentMode = 'trending'; // 'trending', 'search', 'discover', 'watchlist'
 
     // Initialize the app
     init();
@@ -37,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupEventListeners() {
-        // Search functionality with debounce
+        // Search functionality
         searchInput.addEventListener('input', handleSearchInput);
         searchButton.addEventListener('click', handleSearchClick);
         
@@ -54,8 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ratingSelect.addEventListener('change', handleFilterChange);
         runtimeSelect.addEventListener('change', handleFilterChange);
         
-        // Infinite scroll for pagination
-        window.addEventListener('scroll', handleScroll);
+        // Pagination controls
+        itemsPerPageSelect.addEventListener('change', handleItemsPerPageChange);
+        prevPageBtn.addEventListener('click', goToPreviousPage);
+        nextPageBtn.addEventListener('click', goToNextPage);
+        
+        // Remove infinite scroll - we're using button pagination now
     }
 
     function handleSearchInput(e) {
@@ -69,23 +80,86 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set new timeout for debounce (500ms delay)
         searchTimeout = setTimeout(() => {
             if (query.length > 2) {
-                currentQuery = query;
-                currentPage = 1;
-                searchContent(query);
+                performSearch(query);
             } else if (query.length === 0) {
-                currentQuery = '';
-                currentPage = 1;
-                fetchTrendingMovies();
+                resetToTrending();
             }
         }, 500);
     }
 
-    function handleSearchClick() {
+    function handleSearchClick(e) {
+        e.preventDefault();
         const query = searchInput.value.trim();
-        if (query.length > 2) {
-            currentQuery = query;
-            currentPage = 1;
-            searchContent(query);
+        if (query.length > 0) {
+            performSearch(query);
+        } else {
+            resetToTrending();
+        }
+    }
+
+    function performSearch(query) {
+        currentQuery = query;
+        currentPage = 1;
+        currentMode = 'search';
+        searchContent(query);
+    }
+
+    function resetToTrending() {
+        currentQuery = '';
+        currentPage = 1;
+        currentMode = 'trending';
+        fetchTrendingMovies();
+    }
+
+    function handleItemsPerPageChange() {
+        itemsPerPage = parseInt(itemsPerPageSelect.value);
+        currentPage = 1;
+        refreshCurrentView();
+    }
+
+    function goToPreviousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            refreshCurrentView();
+        }
+    }
+
+    function goToNextPage() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            refreshCurrentView();
+        }
+    }
+
+    function refreshCurrentView() {
+        switch (currentMode) {
+            case 'search':
+                if (currentQuery) {
+                    searchContent(currentQuery);
+                }
+                break;
+            case 'discover':
+                discoverContent();
+                break;
+            case 'watchlist':
+                showWatchlist();
+                break;
+            default:
+                fetchTrendingMovies();
+                break;
+        }
+    }
+
+    function updatePaginationInfo() {
+        currentPageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevPageBtn.disabled = currentPage <= 1;
+        nextPageBtn.disabled = currentPage >= totalPages;
+        
+        // Show results info
+        const startItem = (currentPage - 1) * itemsPerPage + 1;
+        const endItem = Math.min(currentPage * itemsPerPage, totalResults);
+        if (totalResults > 0) {
+            currentPageInfo.textContent = `Page ${currentPage} of ${totalPages} (${startItem}-${endItem} of ${totalResults} results)`;
         }
     }
 
@@ -121,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchTrendingMovies() {
         if (isLoading) return;
         isLoading = true;
+        currentMode = 'trending';
         
         try {
             let url = '/api/trending';
@@ -130,9 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.append('type', 'tv');
             }
             
-            if (currentPage > 1) {
-                params.append('page', currentPage.toString());
-            }
+            params.append('page', currentPage.toString());
             
             if (params.toString()) {
                 url += '?' + params.toString();
@@ -144,18 +217,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            if (currentPage === 1) {
-                displayMovies(data.results || data);
-            } else {
-                appendMovies(data.results || data);
-            }
+            // Handle both paginated and non-paginated responses
+            const results = data.results || data;
+            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
+            totalResults = data.total_results || data.length || results.length || 0;
             
-            totalPages = data.total_pages || 1;
+            // Slice results for client-side pagination if needed
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
+            
+            displayMovies(paginatedResults);
+            updatePaginationInfo();
+            
         } catch (error) {
             console.error('Error fetching trending content:', error);
-            if (currentPage === 1) {
-                movieGrid.innerHTML = '<p>Failed to load trending content. Please try again later.</p>';
-            }
+            movieGrid.innerHTML = '<p>Failed to load trending content. Please try again later.</p>';
         } finally {
             isLoading = false;
         }
@@ -164,15 +241,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function searchContent(query) {
         if (isLoading) return;
         isLoading = true;
+        currentMode = 'search';
         
         try {
             const params = new URLSearchParams();
             params.append('q', query);
             params.append('type', currentContentType);
-            
-            if (currentPage > 1) {
-                params.append('page', currentPage.toString());
-            }
+            params.append('page', currentPage.toString());
             
             const response = await fetch(`/api/search?${params.toString()}`);
             if (!response.ok) {
@@ -180,18 +255,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            if (currentPage === 1) {
-                displayMovies(data.results || data);
-            } else {
-                appendMovies(data.results || data);
-            }
+            // Handle both paginated and non-paginated responses
+            const results = data.results || data;
+            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
+            totalResults = data.total_results || data.length || results.length || 0;
             
-            totalPages = data.total_pages || 1;
+            // Slice results for client-side pagination if needed
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
+            
+            displayMovies(paginatedResults);
+            updatePaginationInfo();
+            
         } catch (error) {
             console.error('Error searching content:', error);
-            if (currentPage === 1) {
-                movieGrid.innerHTML = '<p>Failed to search content. Please try again later.</p>';
-            }
+            movieGrid.innerHTML = '<p>Failed to search content. Please try again later.</p>';
         } finally {
             isLoading = false;
         }
@@ -200,14 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
     async function discoverContent() {
         if (isLoading) return;
         isLoading = true;
+        currentMode = 'discover';
         
         try {
             const params = new URLSearchParams();
             params.append('type', currentContentType);
-            
-            if (currentPage > 1) {
-                params.append('page', currentPage.toString());
-            }
+            params.append('page', currentPage.toString());
             
             // Add filters
             Object.keys(currentFilters).forEach(key => {
@@ -222,18 +299,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            if (currentPage === 1) {
-                displayMovies(data.results || data);
-            } else {
-                appendMovies(data.results || data);
-            }
+            // Handle both paginated and non-paginated responses
+            const results = data.results || data;
+            totalPages = data.total_pages || Math.ceil((data.length || results.length) / itemsPerPage) || 1;
+            totalResults = data.total_results || data.length || results.length || 0;
             
-            totalPages = data.total_pages || 1;
+            // Slice results for client-side pagination if needed
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedResults = Array.isArray(results) ? results.slice(startIndex, endIndex) : results;
+            
+            displayMovies(paginatedResults);
+            updatePaginationInfo();
+            
         } catch (error) {
             console.error('Error discovering content:', error);
-            if (currentPage === 1) {
-                movieGrid.innerHTML = '<p>Failed to discover content. Please try again later.</p>';
-            }
+            movieGrid.innerHTML = '<p>Failed to discover content. Please try again later.</p>';
         } finally {
             isLoading = false;
         }
@@ -259,30 +340,11 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.value = '';
         
         if (Object.keys(currentFilters).length > 0) {
+            currentMode = 'discover';
             discoverContent();
         } else {
+            currentMode = 'trending';
             fetchTrendingMovies();
-        }
-    }
-
-    function handleScroll() {
-        if (isLoading || currentPage >= totalPages) return;
-        
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-        
-        // Load more when user is 200px from bottom
-        if (scrollTop + windowHeight >= documentHeight - 200) {
-            currentPage++;
-            
-            if (currentQuery) {
-                searchContent(currentQuery);
-            } else if (Object.keys(currentFilters).length > 0) {
-                discoverContent();
-            } else {
-                fetchTrendingMovies();
-            }
         }
     }
 
@@ -364,14 +426,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function appendMovies(movies) {
-        if (movies && movies.length > 0) {
-            movies.forEach(movie => {
-                createMovieCard(movie);
-            });
-        }
-    }
-
     function createMovieCard(movie) {
         const movieCard = document.createElement('div');
         movieCard.classList.add('movie-card');
@@ -407,16 +461,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showWatchlist() {
+        currentMode = 'watchlist';
+        trendingSection.textContent = 'Your Watchlist';
+        
         if (watchlist.length === 0) {
             movieGrid.innerHTML = '<p>Your watchlist is empty. Add some movies or TV shows!</p>';
-            trendingSection.textContent = 'Your Watchlist';
+            totalPages = 1;
+            totalResults = 0;
+            updatePaginationInfo();
             return;
         }
 
-        trendingSection.textContent = 'Your Watchlist';
+        // Calculate pagination for watchlist
+        totalResults = watchlist.length;
+        totalPages = Math.ceil(totalResults / itemsPerPage);
+        
+        // Ensure current page is valid
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+        
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedWatchlist = watchlist.slice(startIndex, endIndex);
+        
         movieGrid.innerHTML = '';
         
-        watchlist.forEach(item => {
+        paginatedWatchlist.forEach(item => {
             const movieCard = document.createElement('div');
             movieCard.classList.add('movie-card');
 
@@ -441,6 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             movieGrid.appendChild(movieCard);
         });
+        
+        updatePaginationInfo();
     }
 
     function toggleWatchlist(event, id, title, poster, type) {
@@ -453,6 +526,11 @@ document.addEventListener('DOMContentLoaded', () => {
             watchlist.splice(existingIndex, 1);
             event.target.textContent = '+ Watchlist';
             event.target.classList.remove('in-watchlist');
+            
+            // If we're currently viewing the watchlist, refresh it
+            if (currentMode === 'watchlist') {
+                showWatchlist();
+            }
         } else {
             // Add to watchlist
             watchlist.push({ id, title, poster, type });
