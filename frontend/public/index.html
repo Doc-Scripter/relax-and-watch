@@ -59,9 +59,27 @@
         </section>
 
         <section class="trending-movies">
-            <h2>Trending Movies</h2>
+            <div class="section-header">
+                <h2>Trending Movies</h2>
+                <div class="pagination-controls">
+                    <label for="itemsPerPage">Items per page:</label>
+                    <select id="itemsPerPage">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
             <div class="movie-grid">
                 <!-- Static movie cards will be replaced by dynamic content from JavaScript -->
+            </div>
+            <div class="pagination-info">
+                <span id="currentPageInfo">Page 1 of 1</span>
+            </div>
+            <div class="pagination-buttons">
+                <button id="prevPageBtn" class="btn" disabled>Previous</button>
+                <button id="nextPageBtn" class="btn" disabled>Next</button>
             </div>
         </section>
     </main>
